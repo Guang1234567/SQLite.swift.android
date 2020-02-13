@@ -1,0 +1,5 @@
+module CBinding_SQLite_swift_android [system] {
+  umbrella header "include/Bridging-Header.h"
+  link "sqlite3"
+  export *
+}
