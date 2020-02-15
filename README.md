@@ -7,7 +7,7 @@
     And let it support Android.
 
 
--2020-02-16
+- 2020-02-16
 
     Update `sqlite`  to  v3.31.1
     
@@ -31,7 +31,6 @@
         }
     }
     
-}
 ```
     
 
