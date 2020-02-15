@@ -6,6 +6,12 @@ Fork from [FahimF/SQLiteDB](https://github.com/FahimF/SQLiteDB).
 
 And let it support Android.
 
+-2020-02-16
+
+Update `sqlite`  to  v3.31.1
+
+Build it  by [Guang1234567/sqlite3-android-cli](https://github.com/Guang1234567/sqlite3-android-cli).
+
 ---
 
 
