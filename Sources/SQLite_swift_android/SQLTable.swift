@@ -578,4 +578,10 @@ extension SQLTableProtocol where Self: SQLTable {
         }
         return row
     }
+    
+    public static func transaction(execute block: ()throws -> Void)-> Void {
+        let db = SQLiteDB.shared
+        db.transaction(execute: block)
+    }
+    
 }

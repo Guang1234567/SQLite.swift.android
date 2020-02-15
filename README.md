@@ -2,15 +2,38 @@
 
 - 2020-02-15
 
-Fork from [FahimF/SQLiteDB](https://github.com/FahimF/SQLiteDB).
+    Fork from [FahimF/SQLiteDB](https://github.com/FahimF/SQLiteDB).
+    
+    And let it support Android.
 
-And let it support Android.
 
 -2020-02-16
 
-Update `sqlite`  to  v3.31.1
+    Update `sqlite`  to  v3.31.1
+    
+    Build it by [Guang1234567/sqlite3-android-cli](https://github.com/Guang1234567/sqlite3-android-cli).
+    
+    Support `Nest Transcaction`
+    
+```swift
 
-Build it  by [Guang1234567/sqlite3-android-cli](https://github.com/Guang1234567/sqlite3-android-cli).
+    db.transaction {
+        //... outter
+        db.transaction {
+            //... inner 1
+            db.transaction {
+                //... inner 1-1
+            }
+        }
+        //...
+        db.transaction {
+            //... inner 2
+        }
+    }
+    
+}
+```
+    
 
 ---
 

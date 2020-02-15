@@ -55,8 +55,7 @@ public class SQLiteBase {
         if db != nil {
             closeDB()
         }
-        let url = URL(fileURLWithPath: dbPath)
-        var dest = url
+        let dest = URL(fileURLWithPath: dbPath)
         // Open the DB
         path = dest.path
         let cpath = path.cString(using:String.Encoding.utf8)
@@ -406,6 +405,58 @@ public class SQLiteBase {
         }
         return nil
     }
+    
+    public func transaction(execute block: ()throws -> Void)-> Void {
+        queue.sync {
+            let txn: Transaction = Transaction(db: self)
+            do {
+                txn.beginTransaction()
+                try block()
+                txn.commit()
+            } catch {
+                txn.rollback()
+            }
+        }
+    }
 }
 
-
+class Transaction {
+    
+    private let db: SQLiteBase
+    
+    /// for support nest transcation
+    private static var beginCount: Int = 0
+    
+    private static var isSuccess: Bool = true
+    
+    init(db: SQLiteBase) {
+        self.db = db;
+    }
+    
+    func beginTransaction() -> Void {
+        if Transaction.beginCount <= 0 {
+            _ = db.execute(sql: "BEGIN TRANSACTION;")
+        }
+        Transaction.beginCount += 1
+    }
+    
+    func commit() -> Void {
+        Transaction.beginCount -= 1
+        Transaction.isSuccess = Transaction.isSuccess && true
+        if Transaction.beginCount <= 0 && Transaction.isSuccess {
+            _ = db.execute(sql: "COMMIT;")
+            Transaction.beginCount = 0
+            Transaction.isSuccess = true
+        }
+    }
+    
+    func rollback() -> Void {
+        Transaction.beginCount -= 1
+        Transaction.isSuccess = false && Transaction.isSuccess
+        if Transaction.beginCount <= 0 && (!Transaction.isSuccess) {
+            _ = db.execute(sql: "ROLLBACK;")
+            Transaction.beginCount = 0
+            Transaction.isSuccess = true
+        }
+    }
+}
