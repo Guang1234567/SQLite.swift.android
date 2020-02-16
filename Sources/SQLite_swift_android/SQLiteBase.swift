@@ -8,6 +8,7 @@
 
 import CBinding_SQLite_swift_android
 import Foundation
+import SwiftThreadLocal
 
 let SQLITE_DATE = SQLITE_NULL + 1
 
@@ -21,7 +22,7 @@ public class SQLiteBase {
     /// Internal name for GCD queue used to execute SQL commands so that all commands are executed sequentially
     private let QUEUE_LABEL = "SQLiteDB"
     /// The internal GCD queue
-    private var queue: DispatchQueue!
+    private var queue: DispatchQueue
     /// Internal handle to the currently open SQLite DB instance
     internal var db: OpaquePointer?
     /// Internal DateFormatter instance used to manage date formatting
@@ -29,7 +30,11 @@ public class SQLiteBase {
     /// Internal reference to the currently open database path
     internal var path: String!
     
-    public init() {
+    internal let lock = DispatchSemaphore(value: 1)
+    
+    internal let transactionNestedCount: ThreadLocal<Int> = ThreadLocal<Int>(create: { 0 })
+    
+    internal init() {
         // Set up essentials
         queue = DispatchQueue(label: QUEUE_LABEL, attributes: [])
         // You need to set the locale in order for the 24-hour date format to work correctly on devices where 24-hour format is turned off
@@ -430,44 +435,55 @@ public class Transaction {
     private let db: SQLiteBase
     
     /// for support nest transcation
-    fileprivate static var beginCount: Int = 0
+    private var beginCount: Int {
+        get {
+            return db.transactionNestedCount.get()
+        }
+        set {
+            db.transactionNestedCount.set(newValue)
+        }
+    }
     
     init(db: SQLiteBase) {
         self.db = db
     }
     
     public func beginTransaction() {
-        // NSLog("beginTransaction_\(Transaction.beginCount)")
-        
-        if Transaction.beginCount <= 0 {
+        if beginCount <= 0 {
+            db.lock.wait()
             _ = db.execute(sql: "BEGIN;")
         } else {
-            _ = db.execute(sql: "SAVEPOINT SP_\(Transaction.beginCount)")
+            _ = db.execute(sql: "SAVEPOINT SP_\(beginCount)")
         }
-        Transaction.beginCount += 1
+        
+        NSLog("beginTransaction_\(beginCount)_\(Thread.current)")
+        
+        beginCount += 1
     }
     
     public func commit() {
-        Transaction.beginCount -= 1
-        if Transaction.beginCount <= 0 {
+        beginCount -= 1
+        if beginCount <= 0 {
             _ = db.execute(sql: "COMMIT;")
-            Transaction.beginCount = 0
+            db.lock.signal()
+            beginCount = 0
         } else {
-            _ = db.execute(sql: "RELEASE SP_\(Transaction.beginCount)")
+            _ = db.execute(sql: "RELEASE SP_\(beginCount)")
         }
         
-        // NSLog("commit_\(Transaction.beginCount)")
+        NSLog("commit_\(beginCount)_\(Thread.current)")
     }
     
     public func rollback() {
-        Transaction.beginCount -= 1
-        if Transaction.beginCount <= 0 {
+        beginCount -= 1
+        if beginCount <= 0 {
             _ = db.execute(sql: "ROLLBACK;")
-            Transaction.beginCount = 0
+            db.lock.signal()
+            beginCount = 0
         } else {
-            _ = db.execute(sql: "ROLLBACK TO SP_\(Transaction.beginCount)")
+            _ = db.execute(sql: "ROLLBACK TO SP_\(beginCount)")
         }
         
-        // NSLog("rollback_\(Transaction.beginCount)")
+        NSLog("rollback_\(beginCount)_\(Thread.current)")
     }
 }

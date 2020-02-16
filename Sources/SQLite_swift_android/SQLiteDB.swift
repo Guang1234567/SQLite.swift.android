@@ -12,10 +12,7 @@ import Foundation
 
 /// Simple wrapper class to provide basic SQLite database access.
 public class SQLiteDB: SQLiteBase {
-    /// Singleton instance for access to the SQLiteDB class
-    public static let shared = SQLiteDB()
-
-    private override init() {
+    public override init() {
         super.init()
     }
 

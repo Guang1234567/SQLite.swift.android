@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "SwiftThreadLocal",
+        "repositoryURL": "https://github.com/Guang1234567/SwiftThreadLocal.git",
+        "state": {
+          "branch": "master",
+          "revision": "c38b304d9d5bb87990394b6bdb0c747b75c5538f",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
