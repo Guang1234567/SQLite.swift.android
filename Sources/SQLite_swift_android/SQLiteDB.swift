@@ -1,4 +1,5 @@
 //
+import CBinding_SQLite_swift_android
 //  SQLiteDB.swift
 //  TasksGalore
 //
@@ -6,24 +7,23 @@
 //  Copyright (c) 2014 RookSoft Pte. Ltd. All rights reserved.
 //
 import Foundation
-import CBinding_SQLite_swift_android
 
-// MARK:- SQLiteDB Class
+// MARK: - SQLiteDB Class
+
 /// Simple wrapper class to provide basic SQLite database access.
 public class SQLiteDB: SQLiteBase {
-    
     /// Singleton instance for access to the SQLiteDB class
     public static let shared = SQLiteDB()
-    
+
     private override init() {
         super.init()
     }
-    
+
     /// Output the current SQLite database path
-    public override var description:String {
+    public override var description: String {
         return "SQLiteDB: \(String(describing: path))"
     }
-    
+
     /// Close the currently open SQLite database. Before closing the DB, the framework automatically takes care of optimizing the DB at frequent intervals by running the following commands:
     /// 1. **VACUUM** - Repack the DB to take advantage of deleted data
     /// 2. **ANALYZE** - Gather information about the tables and indices so that the query optimizer can use the information to make queries work better.
@@ -51,7 +51,7 @@ public class SQLiteDB: SQLiteBase {
             // Clean DB
             NSLog("SQLiteDB - Optimize DB")
             let sql = "VACUUM; ANALYZE"
-            if CInt(execute(sql:sql)) != SQLITE_OK {
+            if CInt(execute(sql: sql)) != SQLITE_OK {
                 NSLog("SQLiteDB - Error optimize DB")
             }
             super.closeDB()
