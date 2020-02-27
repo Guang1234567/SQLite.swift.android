@@ -414,7 +414,7 @@ public class SQLiteBase {
         return nil
     }
     
-    public func transaction(block: () throws -> Void) {
+    public func transaction(_ block: () throws -> Void) throws {
         let txn: Transaction = Transaction(db: self)
         do {
             txn.beginTransaction()
@@ -422,12 +422,8 @@ public class SQLiteBase {
             txn.commit()
         } catch {
             txn.rollback()
+            throw error
         }
-    }
-    
-    public func transaction(block: (_ txn: Transaction) -> Void) {
-        let txn: Transaction = Transaction(db: self)
-        block(txn)
     }
 }
 
@@ -441,6 +437,10 @@ public class Transaction {
         }
         set {
             db.transactionNestedCount.set(newValue)
+            
+            if newValue <= 0 {
+                db.transactionNestedCount.remove()
+            }
         }
     }
     
@@ -448,7 +448,7 @@ public class Transaction {
         self.db = db
     }
     
-    public func beginTransaction() {
+    fileprivate func beginTransaction() {
         if beginCount <= 0 {
             db.lock.wait()
             _ = db.execute(sql: "BEGIN;")
@@ -461,7 +461,7 @@ public class Transaction {
         beginCount += 1
     }
     
-    public func commit() {
+    fileprivate func commit() {
         beginCount -= 1
         if beginCount <= 0 {
             _ = db.execute(sql: "COMMIT;")
@@ -474,7 +474,7 @@ public class Transaction {
         NSLog("commit_\(beginCount)_\(Thread.current)")
     }
     
-    public func rollback() {
+    fileprivate func rollback() {
         beginCount -= 1
         if beginCount <= 0 {
             _ = db.execute(sql: "ROLLBACK;")

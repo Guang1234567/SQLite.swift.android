@@ -576,8 +576,4 @@ extension SQLTableProtocol where Self: SQLTable {
         }
         return row
     }
-    
-    public static func transaction(db: SQLiteDB, block: () throws -> Void) {
-        db.transaction(block: block)
-    }
 }
